@@ -6,27 +6,27 @@
 
 ### Entorno Virtual
 
-_C:...\backend>_ pip install virtualenv
+_C:...\backend>_ `pip install virtualenv`
 
-_C:...\backend>_ virtualenv venv                    #Crea el entorno virtual
+_C:...\backend>_ `virtualenv venv`                    #Crea el entorno virtual
 
 **_Windows:_**
-.\venv\Scripts\activate                                 #Activa el entorno virtual
+`.\venv\Scripts\activate`                                 #Activa el entorno virtual
 
 **_Linux:_**
-source venv/bin/activate                                #Activa el entorno virtual
+`source venv/bin/activate`                                #Activa el entorno virtual
 
 -Una vez creado y dentro del entorno virtual, instalar FastAPI y Uvicorn, configurar el interprete y descargar paquetes:
 
-_(venv) C:...\backend>_ pip install "fastapi[all]" uvicorn
+_(venv) C:...\backend>_ `pip install "fastapi[all]" uvicorn`
 
 En VSCode: F1 > Select Interpreter > Python('venv')
 
-_(venv) C:...\backend>_ pip install -r requirements.txt
+_(venv) C:...\backend>_ `pip install -r requirements.txt`
 
 ### Correr el backend:
 
-_(venv) C:...\backend>_ uvicorn main:app --reload
+_(venv) C:...\backend>_ `uvicorn main:app --reload`
 
 
 ## Frontend - React
