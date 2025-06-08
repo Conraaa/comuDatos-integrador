@@ -1,14 +1,14 @@
 # Comunicación de Datos - Trabajo Integrador - Grupo 4 - S32
 
-## Backend - FastAPI
+## Backend - _FastAPI_
 
-+Teniendo Python y el gestor de paquetes PIP instalados, se instalará FastAPI. En caso de no tenerlos se pueden obtener en https://www.python.org/ y https://pypi.org/project/pip/, respectivamente.
++Teniendo _Python_ y el gestor de paquetes PIP instalados, se instalará _FastAPI_. En caso de no tenerlos se pueden obtener en https://www.python.org/ y https://pypi.org/project/pip/, respectivamente.
 
 ### Entorno Virtual
 
 _C:...\backend>_ `pip install virtualenv`
 
-_C:...\backend>_ `virtualenv venv`                    #Crea el entorno virtual
+_C:...\backend>_ `virtualenv venv`                        #Crea el entorno virtual
 
 **_Windows:_**
 `.\venv\Scripts\activate`                                 #Activa el entorno virtual
@@ -16,7 +16,7 @@ _C:...\backend>_ `virtualenv venv`                    #Crea el entorno virtual
 **_Linux:_**
 `source venv/bin/activate`                                #Activa el entorno virtual
 
--Una vez creado y dentro del entorno virtual, instalar FastAPI y Uvicorn, configurar el interprete y descargar paquetes:
+-Una vez creado y dentro del entorno virtual, instalar _FastAPI_ y _Uvicorn_, configurar el interprete y descargar paquetes:
 
 _(venv) C:...\backend>_ `pip install "fastapi[all]" uvicorn`
 
@@ -31,4 +31,4 @@ _(venv) C:...\backend>_ `uvicorn main:app --reload`
 
 ---
 
-## Frontend - React
+## Frontend - _React_
