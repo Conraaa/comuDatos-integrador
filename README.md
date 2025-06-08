@@ -1,5 +1,7 @@
 # Comunicación de Datos - Trabajo Integrador - Grupo 4 - S32
 
+---
+
 ## Backend - FastAPI
 
 +Teniendo Python y el gestor de paquetes PIP instalados, se instalará FastAPI. En caso de no tenerlos se pueden obtener en https://www.python.org/ y https://pypi.org/project/pip/, respectivamente.
@@ -28,5 +30,7 @@ _(venv) C:...\backend>_ `pip install -r requirements.txt`
 
 _(venv) C:...\backend>_ `uvicorn main:app --reload`
 
+
+---
 
 ## Frontend - React
