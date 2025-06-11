@@ -12,3 +12,7 @@ async def read_item(item_id: int, q: str = None):
 
 # hola dsad
 # chau dsadsads dsadsa sdadsa
+# hola
+# chau 
+
+# vengo a romperte las pelotas
