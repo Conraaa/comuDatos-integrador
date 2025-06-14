@@ -25,7 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# path's directorios
 UPLOAD_DIRECTORY = "uploaded_images"
 PROCESSED_DIRECTORY = "processed_images"
 BIT_DEPTH_REDUCED_DIRECTORY = "bit_depth_reduced_images"
@@ -69,7 +68,7 @@ async def read_root():
                 <div class="card">
                     <h2>1. Digitalización Completa (Muestreo y Cuantización de Compañero)</h2>
                     <p>Usa la función de tu compañero para aplicar muestreo y su lógica de cuantización.</p>
-                    <form action="/upload-and-process/" enctype="multipart/form-data" method="post">
+                    <form id="digitalizationForm" action="/upload-and-process/" enctype="multipart/form-data" method="post">
                         <label for="file_digitalize">Sube tu imagen de "alta resolución":</label>
                         <input name="file" type="file" accept="image/*" id="file_digitalize">
                         <label for="sample_rate">Frecuencia de Muestreo (cada N píxeles, ej: 2):</label>
@@ -108,8 +107,8 @@ async def read_root():
             </div>
 
             <script>
-                document.getElementById('bitReductionForm').addEventListener('submit', async function(event) {
-                    event.preventDefault(); // Evitar el envío de formulario tradicional
+                async function handleFormSubmit(event, formAction) {
+                    event.preventDefault();
 
                     const form = event.target;
                     const formData = new FormData(form);
@@ -117,13 +116,13 @@ async def read_root():
                     const originalDisplay = document.getElementById('original_display');
                     const processedDisplay = document.getElementById('processed_display');
 
-                    loadingMessage.style.display = 'block'; // Mostrar mensaje de carga
+                    loadingMessage.style.display = 'block';
                     originalDisplay.src = "https://placehold.co/400x300/e0e0e0/555555?text=Cargando...";
                     processedDisplay.src = "https://placehold.co/400x300/e0e0e0/555555?text=Cargando...";
 
 
                     try {
-                        const response = await fetch(form.action, {
+                        const response = await fetch(formAction, {
                             method: 'POST',
                             body: formData
                         });
@@ -146,8 +145,16 @@ async def read_root():
                         originalDisplay.src = "https://placehold.co/400x300/e0e0e0/FF0000?text=Error";
                         processedDisplay.src = "https://placehold.co/400x300/e0e0e0/FF0000?text=Error";
                     } finally {
-                        loadingMessage.style.display = 'none'; // Ocultar mensaje de carga
+                        loadingMessage.style.display = 'none';
                     }
+                }
+
+                document.getElementById('bitReductionForm').addEventListener('submit', function(event) {
+                    handleFormSubmit(event, '/reduce-bits/');
+                });
+
+                document.getElementById('digitalizationForm').addEventListener('submit', function(event) {
+                    handleFormSubmit(event, '/upload-and-process/');
                 });
             </script>
         </body>
@@ -182,7 +189,6 @@ async def upload_and_process_image(
             quantization_bits=quantization_bits
         )
 
-        # Manejo de conversión de modo 'P' a 'RGB' para JPEG/JPG (si es necesario)
         if processed_image.mode == 'P' and file_extension.lower() in ['jpg', 'jpeg']:
             processed_image = processed_image.convert('RGB')
 
@@ -215,7 +221,7 @@ async def reduce_bits_image(
     original_filename = f"{uuid.uuid4()}.{file_extension}"
     reduced_filename = f"reduced_{uuid.uuid4()}.{file_extension}"
 
-    original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename) # Guarda el original para referencia
+    original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename)
     reduced_file_path = os.path.join(BIT_DEPTH_REDUCED_DIRECTORY, reduced_filename)
 
     try:
@@ -237,11 +243,11 @@ async def reduce_bits_image(
         return {
             "message": "Profundidad de bits reducida exitosamente",
             "original_image_url": f"/images/{original_filename}",
-            "processed_image_url": f"/images/{reduced_filename}", # Usamos el mismo campo para la URL de la imagen procesada
+            "processed_image_url": f"/images/{reduced_filename}",
             "original_filename": original_filename,
             "processed_filename": reduced_filename
         }
-    except ValueError as ve: # Captura errores específicos de tu función
+    except ValueError as ve:
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
         raise HTTPException(status_code=400, detail=f"Error en la reducción de bits: {str(ve)}")
@@ -250,7 +256,6 @@ async def reduce_bits_image(
         traceback.print_exc()
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
-        # No eliminar reduced_file_path aquí si se guardó parcialmente
         raise HTTPException(status_code=500, detail=f"Error inesperado al reducir la profundidad de bits: {str(e)}")
 
 
