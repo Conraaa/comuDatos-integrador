@@ -66,7 +66,7 @@ async def read_root():
             <h1>Elige una Funcionalidad de Procesamiento de Imagen</h1>
             <div class="container">
                 <div class="card">
-                    <h2>1. Digitalización Completa (Muestreo y Cuantización de Compañero)</h2>
+                    <h2>1. Digitalización Completa</h2>
                     <p>Usa la función de tu compañero para aplicar muestreo y su lógica de cuantización.</p>
                     <form id="digitalizationForm" action="/upload-and-process/" enctype="multipart/form-data" method="post">
                         <label for="file_digitalize">Sube tu imagen de "alta resolución":</label>
@@ -80,7 +80,7 @@ async def read_root():
                 </div>
 
                 <div class="card">
-                    <h2>2. Reducción de Profundidad de Bits (Tu Módulo)</h2>
+                    <h2>2. Reducción de Profundidad de Bits</h2>
                     <p>Aplica únicamente la reducción de profundidad de bits usando tu propia función.</p>
                     <form id="bitReductionForm" action="/reduce-bits/" enctype="multipart/form-data" method="post">
                         <label for="file_reduce_bits">Sube tu imagen:</label>
