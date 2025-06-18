@@ -1,1 +1,5 @@
 __pycache__/
+bit_depth_reduced_images/
+processed_images/
+uploaded_images/
+venv/
