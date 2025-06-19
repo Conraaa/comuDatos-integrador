@@ -48,7 +48,13 @@ main{
   background-color: #471396;
   color: white;
   align-items: center;
+  gap: 20px;
+  font-size: 24px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1{
+  text-align: center;
 }
 
 .footer{
@@ -113,5 +119,4 @@ main{
   font-size: 13px;
   color: #fff;
 }
-
 
