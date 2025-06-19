@@ -18,11 +18,11 @@ _C:\\...\\>_ `virtualenv venv`                        #Crea el entorno virtual
 
 -Una vez creado y dentro del entorno virtual, instalar **_FastAPI_** y **_Uvicorn_**, configurar el interprete y descargar paquetes:
 
-_(venv) C:\\...\\>_ `pip install "fastapi[all]" uvicorn`
+_(venv) C:\\...\\backend\\>_ `pip install "fastapi[all]" uvicorn`
 
 En VSCode: F1 > Select Interpreter > Python('venv')
 
-_(venv) C:\\...\\>_ `pip install -r requirements.txt`
+_(venv) C:\\...\\backend\\>_ `pip install -r requirements.txt`
 
 ### Base de Datos
 
