@@ -1,13 +1,22 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from PIL import Image
 import io
 import os
 import uuid
+import logging
 
-from utils.image_processing import process_image_for_digitalization
+from backend.db.database import engine, AsyncSessionLocal, create_db_tables, get_db, ImageRecord, Base
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from backend.utils.image_processing import process_image_for_digitalization
 
 from fastapi.middleware.cors import CORSMiddleware
+
+# logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -30,6 +39,17 @@ PROCESSED_DIRECTORY = "processed_images"
 
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 os.makedirs(PROCESSED_DIRECTORY, exist_ok=True)
+
+@app.on_event("startup")
+async def startup():
+    logger.info("Iniciando aplicación...")
+    await create_db_tables()
+    logger.info("Motor de base de datos configurado y tablas verificadas.")
+    
+@app.on_event("shutdown")
+async def shutdown():
+    logger.info("Cerrando aplicación...")
+    logger.info("Aplicación FastAPI cerrada.")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -60,12 +80,16 @@ async def read_root():
 async def upload_and_process_image(
     file: UploadFile = File(...),
     sample_rate: int = Form(1),
-    quantization_bits: int = Form(8)
+    quantization_bits: int = Form(8),
+    db: AsyncSession = Depends(get_db)
 ):  
+    logger.info(f"DEBUG: sample_rate recibido: {sample_rate}")
+    logger.info(f"DEBUG: quantization_bits recibido: {quantization_bits}")
+    
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="El archivo no es una imagen válida.")
 
-    file_extension = file.filename.split(".")[-1]
+    file_extension = file.filename.split(".")[-1].lower()
     original_filename = f"{uuid.uuid4()}.{file_extension}"
     processed_filename = f"processed_{uuid.uuid4()}.{file_extension}"
 
@@ -77,6 +101,9 @@ async def upload_and_process_image(
             buffer.write(await file.read())
 
         original_image = Image.open(original_file_path)
+        
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
 
         processed_image = process_image_for_digitalization(
             original_image,
@@ -88,6 +115,18 @@ async def upload_and_process_image(
             processed_image = processed_image.convert('RGB')
 
         processed_image.save(processed_file_path)
+        
+        db_record = ImageRecord(
+            original_filename=original_filename,
+            processed_filename=processed_filename,
+            sample_rate_used=sample_rate,
+            quantization_bits_used=quantization_bits
+        )
+        db.add(db_record)
+        await db.commit()
+        await db.refresh(db_record)
+
+        logger.info(f"Registro de imagen guardado en la DB con ID: {db_record.id}")
 
         return {
             "message": "Imagen procesada exitosamente",
@@ -97,8 +136,8 @@ async def upload_and_process_image(
             "processed_filename": processed_filename
         }
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error al procesar la imagen: {str(e)}", exc_info=True)
+
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
         if os.path.exists(processed_file_path):
@@ -124,3 +163,9 @@ async def get_image(filename: str):
         mime_type = "image/gif"
 
     return StreamingResponse(open(file_path, "rb"), media_type=mime_type)
+
+@app.get("/records/")
+async def get_image_records(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ImageRecord))
+    records = result.scalars().all()
+    return records
