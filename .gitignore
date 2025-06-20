@@ -1,24 +1,7 @@
-# Carpetas de Python generadas
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Entorno virtual
-venv/
-.venv/ # Si alguna vez usas .venv en lugar de venv
-
-# Carpetas de imágenes generadas/subidas
-bit_depth_reduced_images/
 processed_images/
 uploaded_images/
-
-# Carpetas y archivos temporales/generados que no son código fuente
-path/
-*.log
-*.sqlite3
+bit_depth_reduced_images/
 .env
-
-# Archivos específicos del IDE
-.vscode/
-.idea/
+venv/
+.venv/
