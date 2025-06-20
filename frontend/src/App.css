@@ -67,6 +67,16 @@ button:visited{
   opacity: 0.6;
 }
 
+.logo-Footer{
+  width: 90px;
+  height: 90px;
+  position: absolute;
+}
+
+.logo-Menu{
+  width: 60px;
+  height: 60px;
+}
 /*.App {
   text-align: center;
 }

@@ -7,6 +7,8 @@ import Digitalizacion from './components/digitalizacion';
 import Reduccion from './components/reduccion';
 import Funcionamiento from './components/funcionamiento';
 import Miembros from './components/miembros';
+import miImagen from '/home/paula/Documentos/ComuDatos/comuDatos-integrador/frontend/src/circle logo.png';
+import logoMenu from '/home/paula/Documentos/ComuDatos/comuDatos-integrador/frontend/src/png logo.png';
 
 function App() {
   const [componenteActivo, setComponenteActivo] = useState('analogToDigital');
@@ -98,7 +100,9 @@ function App() {
       <div className="main-content">
         <Offcanvas show={sidebarVisible} onHide={handleCloseOffcanvas} placement="start">
           <Offcanvas.Header closeButton>
-            <Offcanvas.Title>Menú ODigital</Offcanvas.Title>
+            <Offcanvas.Title>
+              <img className="logo-Menu" src={logoMenu} alt="Logo" />
+              Menú ODigital</Offcanvas.Title>
           </Offcanvas.Header>
           <Offcanvas.Body>
             <div className="menuSuperior">
@@ -145,7 +149,8 @@ function App() {
       <footer className='footer'>
         <div className="footer-top">
           <div className="footer-left">
-            <p><strong>logo</strong></p>
+            <img className="logo-Footer" src={miImagen} alt="Logo" />
+
           </div>
           <div className="footer-column-right">
             <div className='footer-column-section'>

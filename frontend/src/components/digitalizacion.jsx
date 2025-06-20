@@ -3,6 +3,7 @@ import { Container, Button, Form } from 'react-bootstrap';
 import './digitalizacion.css';
 
 function Digitalizacion() {
+  const [selectedBitDepth, setSelectedBitDepth] = useState(null);
   const [fileName, setFileName] = useState('');
 
   const handleFileChange = (e) => {
