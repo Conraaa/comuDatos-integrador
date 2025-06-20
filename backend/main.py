@@ -38,7 +38,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# path's directorios
 UPLOAD_DIRECTORY = "uploaded_images"
 PROCESSED_DIRECTORY = "processed_images"
 BIT_DEPTH_REDUCED_DIRECTORY = "bit_depth_reduced_images"
@@ -124,7 +123,7 @@ async def read_root():
                 <div class="image-container">
                     <p>Imagen Original</p>
                     <img id="original_display" src="https://placehold.co/400x300/e0e0e0/555555?text=Original" alt="Imagen Original">
-                    </div>
+                </div>
                 <div class="image-container">
                     <p>Imagen Modificada</p>
                     <img id="processed_display" src="https://placehold.co/400x300/e0e0e0/555555?text=Modificada" alt="Imagen Modificada">
@@ -158,7 +157,6 @@ async def read_root():
                         }
 
                         const result = await response.json();
-
                         originalDisplay.src = result.original_image_url;
                         processedDisplay.src = result.processed_image_url;
                         originalDisplay.alt = `Original: ${result.original_filename}`;
@@ -205,7 +203,6 @@ async def upload_and_process_image(
     processed_filename = f"processed_{uuid.uuid4()}.{file_extension}"
 
     original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename)
-    processed_file_path = os.path.join(PROCESSED_DIRECTORY, processed_filename)
 
     try:
         with open(original_file_path, "wb") as buffer:
@@ -236,7 +233,7 @@ async def upload_and_process_image(
             quantization_bits=quantization_bits
         )
 
-        if processed_image.mode == 'P' and file_extension in ['jpg', 'jpeg']:
+        if processed_image.mode == 'P' and file_extension.lower() in ['jpg', 'jpeg']:
             processed_image = processed_image.convert('RGB')
 
         processed_image.save(os.path.join(PROCESSED_DIRECTORY, processed_filename))
@@ -270,8 +267,6 @@ async def upload_and_process_image(
 
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
-        if os.path.exists(processed_file_path):
-            os.remove(processed_file_path)
         raise HTTPException(status_code=500, detail=f"Error al procesar la imagen: {str(e)}")
     
 @app.post("/reduce-bits/")
@@ -353,6 +348,57 @@ async def reduce_bits_image(
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
         raise HTTPException(status_code=500, detail=f"Error inesperado al reducir la profundidad de bits: {str(e)}")
+
+
+@app.post("/reduce-bits/")
+async def reduce_bits_image(
+    file: UploadFile = File(...),
+    target_bits: int = Form(...)
+):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="El archivo no es una imagen válida.")
+
+    file_extension = file.filename.split(".")[-1]
+    original_filename = f"{uuid.uuid4()}.{file_extension}"
+    reduced_filename = f"reduced_{uuid.uuid4()}.{file_extension}"
+
+    original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename)
+    reduced_file_path = os.path.join(BIT_DEPTH_REDUCED_DIRECTORY, reduced_filename)
+
+    try:
+        with open(original_file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        original_image = Image.open(original_file_path)
+
+        reduced_image = apply_bit_depth_reduction(
+            original_image,
+            target_bits=target_bits
+        )
+
+        if reduced_image.mode == 'P' and file_extension.lower() in ['jpg', 'jpeg']:
+            reduced_image = reduced_image.convert('RGB')
+
+        reduced_image.save(reduced_file_path)
+
+        return {
+            "message": "Profundidad de bits reducida exitosamente",
+            "original_image_url": f"/images/{original_filename}",
+            "processed_image_url": f"/images/{reduced_filename}",
+            "original_filename": original_filename,
+            "processed_filename": reduced_filename
+        }
+    except ValueError as ve:
+        if os.path.exists(original_file_path):
+            os.remove(original_file_path)
+        raise HTTPException(status_code=400, detail=f"Error en la reducción de bits: {str(ve)}")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        if os.path.exists(original_file_path):
+            os.remove(original_file_path)
+        raise HTTPException(status_code=500, detail=f"Error inesperado al reducir la profundidad de bits: {str(e)}")
+
 
 @app.get("/images/{filename}")
 async def get_image(filename: str):

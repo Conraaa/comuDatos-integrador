@@ -3,3 +3,5 @@ processed_images/
 uploaded_images/
 bit_depth_reduced_images/
 .env
+venv/
+.venv/
