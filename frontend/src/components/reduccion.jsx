@@ -18,7 +18,7 @@ function Reduccion({ onProcess }) {
     }
   };
 
-  const handleProcess = () => {
+  const handleProcessReduccion = () => {
     if (!file || !selectedBitDepth) {
       alert("Select file and bit depth first.");
       return;
@@ -56,7 +56,7 @@ function Reduccion({ onProcess }) {
           ))}
         </div>
 
-        <Button variant="success" onClick={handleProcess}>Process</Button>
+        <Button variant="success" onClick={handleProcessReduccion}>Process</Button>
       </div>
     </Container>
   );

@@ -2,16 +2,27 @@ import React, { useState } from 'react';
 import { Container, Button, Form } from 'react-bootstrap';
 import './digitalizacion.css';
 
-function Digitalizacion() {
-  const [selectedBitDepth, setSelectedBitDepth] = useState(null);
+function Digitalizacion({ onProcess }) {
   const [fileName, setFileName] = useState('');
+  const [file, setFile] = useState(null);
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setFileName(e.target.files[0].name);
+    const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      setFile(selected);
+      setFileName(selected.name);
     } else {
+      setFile(null);
       setFileName('');
     }
+  };
+
+    const handleProcessDigitalizacion = () => {
+    if (!file) {
+      alert("Select file first.");
+      return;
+    }
+    onProcess(file);
   };
 
   return (
@@ -32,7 +43,7 @@ function Digitalizacion() {
           </div>
         </Form.Group>
 
-        <Button variant="success">Process</Button>
+        <Button variant="success" onClick={handleProcessDigitalizacion}>Process</Button>
       </div>
     </Container>
   );
