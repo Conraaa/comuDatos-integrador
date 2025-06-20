@@ -1,8 +1,8 @@
 import React from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import './reduccion.css';
+import './digitalizacion-result.css';
 
-function ReduccionResult({ originalImage, processedImage, selectedBits }) {
+function DigitalizacionResult({ originalImage, processedImage}) {
   return (
     <Container className="reduccion-result-container text-center py-4">
       <Row className="align-items-center mb-4">
@@ -22,7 +22,7 @@ function ReduccionResult({ originalImage, processedImage, selectedBits }) {
         </Col>
 
         <Col md={5}>
-          <h6>{selectedBits}Digital:</h6>
+          <h6>Digital:</h6>
           <div className="image-preview">
             {processedImage ? (
               <img src={processedImage} alt="Processed" className="img-fluid rounded shadow-sm" />
@@ -46,4 +46,4 @@ function ReduccionResult({ originalImage, processedImage, selectedBits }) {
   );
 }
 
-export default ReduccionResult;
+export default DigitalizacionResult;
