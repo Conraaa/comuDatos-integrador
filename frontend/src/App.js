@@ -7,8 +7,8 @@ import Digitalizacion from './components/digitalizacion';
 import Reduccion from './components/reduccion';
 import Funcionamiento from './components/funcionamiento';
 import Miembros from './components/miembros';
-import miImagen from '/home/paula/Documentos/ComuDatos/comuDatos-integrador/frontend/src/circle logo.png';
-import logoMenu from '/home/paula/Documentos/ComuDatos/comuDatos-integrador/frontend/src/png logo.png';
+import miImagen from './circle logo.png';
+import logoMenu from './png logo.png';
 
 function App() {
   const [componenteActivo, setComponenteActivo] = useState('analogToDigital');
