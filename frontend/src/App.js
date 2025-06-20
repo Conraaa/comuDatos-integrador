@@ -18,6 +18,7 @@ function App() {
   const [originalImage, setOriginalImage] = useState(null);
   const [selectedBits, setSelectedBits] = useState(null);
   const [processedImage, setProcessedImage] = useState(null);
+  const [historial, setHistorial] = useState([]);
 
   const handleCloseOffcanvas = () => setSidebarVisible(false);
   const handleShowOffcanvas = () => setSidebarVisible(true);
@@ -78,7 +79,7 @@ function App() {
     }
   };
 
-  // Función que maneja el proceso, llamada desde Reduccion
+
   const handleProcessReduccion = async (imageFile, bits) => {
     // Mostrar la imagen original antes de procesar
     setOriginalImage(URL.createObjectURL(imageFile));
@@ -94,6 +95,9 @@ function App() {
     }
   };
 
+
+
+
   const handleProcessDigitalizacion = async (imageFile) => {
     setOriginalImage(URL.createObjectURL(imageFile));
     setProcessedImage(null);
@@ -105,6 +109,7 @@ function App() {
       setComponenteActivo('digitizationResult');
     }
   };
+
 
   const renderComponente = () => {
     switch (componenteActivo) {
@@ -129,9 +134,9 @@ function App() {
             processedImage={processedImage}
           />
         );
-      case 'history':
-        return (
-          <Historial />
+        case 'history':
+          return (
+            <Historial historial={historial} />
         );
       case 'howItWorks':
         return <Funcionamiento />;
@@ -141,9 +146,11 @@ function App() {
         return (
           <Digitalizacion 
             onProcess={handleProcessDigitalizacion}/>
-          );
+        );
     }
   };
+
+ 
 
   return (
     <div className="app-container">
@@ -161,6 +168,7 @@ function App() {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <div className="menuSuperior">
+              {/*Boton de Analog*/}
               <Button
                 variant="light" 
                 onClick={() => { setComponenteActivo('analogToDigital'); handleCloseOffcanvas(); }}
@@ -168,6 +176,8 @@ function App() {
               >
                 Analog to Digital
               </Button>
+
+              {/*Boton de Bits*/}
               <Button
                 variant="light"
                 onClick={() => { setComponenteActivo('bitDepth'); handleCloseOffcanvas(); }}
@@ -175,9 +185,19 @@ function App() {
               >
                 Lower Bit Depth
               </Button>
+
+              {/*Boton de Historial*/}
+              <Button
+                variant="light" 
+                onClick={() => { setComponenteActivo('history'); handleCloseOffcanvas(); }}
+                className={componenteActivo === 'history' ? 'active-link' : ''}
+              >
+                History
+              </Button>
             </div>
             <hr /> 
             <div className="menuInferior">
+              {/*Boton de How it Works*/}
               <Button
                 variant="light"
                 onClick={() => { setComponenteActivo('howItWorks'); handleCloseOffcanvas(); }}
@@ -185,6 +205,8 @@ function App() {
               >
                 How It Works
               </Button>
+
+              {/*Boton de Members*/}
               <Button
                 variant="light"
                 onClick={() => { setComponenteActivo('members'); handleCloseOffcanvas(); }}
