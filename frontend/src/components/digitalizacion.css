@@ -1,3 +1,53 @@
+
+.digitalizacion-card-container {
+  max-width: 700px;
+  margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+
+.upload-card {
+  border: 2px #ccc;
+  padding: 2.5rem;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.btn-primary:hover {
+    background-color: #5229a5;
+    border-color: #5229a5;
+}
+
+.btn-success {
+  background-color: #7b3fe4;
+  border-color: #7b3fe4;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: #692fc4;
+  border-color: #692fc4;
+}
+
+.form-check-input:checked {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+/*
 .upload-container {
   max-width: 600px;
   margin: auto;
@@ -6,4 +56,4 @@
 .results img {
   max-width: 100%;
   margin: 10px 0;
-}
+}*/

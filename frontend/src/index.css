@@ -63,6 +63,8 @@ main{
   border-top: 1px solid #ccc;
   padding: 20px;
   font-size: 14px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .footer-top{
@@ -115,7 +117,6 @@ main{
 
 .footer-bottom{
   text-align: center;
-  margin-top: 20px;
   font-size: 13px;
   color: #fff;
 }

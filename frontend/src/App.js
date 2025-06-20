@@ -103,7 +103,7 @@ function App() {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2025 ODigital. All Rights Reserved</p>
+          &copy; 2025 ODigital. All Rights Reserved
         </div>
       </footer>
     </div>
