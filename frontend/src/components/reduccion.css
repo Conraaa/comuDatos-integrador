@@ -1,0 +1,76 @@
+.mb-4{
+    font-weight: bold;
+    color: #6f42c1;
+}
+
+.bit-button {
+  min-width: 90px;
+  font-weight: 500;
+  border-radius: 20px;
+  background-color: white !important;
+  color: #6f42c1;
+  border: 2px solid #6f42c1;
+  transition: all 0.2s ease-in-out;
+}
+
+.bit-button:hover,
+.bit-button:focus {
+  background-color: #d6b3f9 !important;
+  color: white;
+  border-color: #6f42c1;
+}
+
+.bit-button.active {
+  background-color: #d6b3f9 !important;
+  color: white;
+  border-color: #6f42c1 !important;
+}
+
+
+.reduccion-card-container {
+  max-width: 700px;
+  margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+
+.upload-card {
+  border: 2px #ccc;
+  padding: 2.5rem;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.btn-primary:hover {
+    background-color: #5229a5;
+    border-color: #5229a5;
+}
+
+.btn-success {
+  background-color: #7b3fe4;
+  border-color: #7b3fe4;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: #692fc4;
+  border-color: #692fc4;
+}
+
+.form-check-input:checked {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
