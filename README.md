@@ -28,7 +28,7 @@ _(venv) C:\\...\\backend\\>_ `pip install -r requirements.txt`
 
 +Instalar **_Version 17_** del **controlador ODBC**:
 
-https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16
+https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16 **- Recordar instalar la _V. 17_**
 
 +Se debe tener una base de datos creada en **SSMS** con el nombre exacto: _`cdd_images`_.
 
