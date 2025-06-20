@@ -1,6 +1,6 @@
-# Comunicación de Datos - Trabajo Integrador - Grupo 4 - S32
+# **Comunicación de Datos** - Trabajo Integrador - **Grupo 4** - S32
 
-## Backend - _FastAPI_
+## Backend - **_FastAPI_**
 
 +Teniendo **_Python_** y el gestor de **paquetes PIP** instalados, se instalará **_FastAPI_**. En caso de no tenerlos se pueden obtener en https://www.python.org/ y https://pypi.org/project/pip/, respectivamente.
 
@@ -43,4 +43,12 @@ _(venv) C:\\...\\>_ `uvicorn backend.main:app --reload`
 
 ---
 
-## Frontend - _React_
+## Frontend - **_React_**
+
++Utilizando **Visual Studio Code**, agregar la extension de React: **"_ES7+ React/Redux/React-Native snippets_"**.
+
++Instalar todos los paquetes necesarios:
+
+_C:\\...\\frontend\\>_ `npm install`
+
++Una vez instalado todo, "_C:\\...\\frontend\\>_ `npm start`" ejecutará la aplicación en el modo de desarrollo.
