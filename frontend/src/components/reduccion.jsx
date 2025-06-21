@@ -23,7 +23,7 @@ function Reduccion({ onProcess }) {
       alert("Select file and bit depth first.");
       return;
     }
-    onProcess(file, selectedBitDepth); // enviamos el File y bits
+    onProcess(file, parseInt(selectedBitDepth, 10));
   };
 
   return (
@@ -33,14 +33,14 @@ function Reduccion({ onProcess }) {
         <div className="upload-icon">☁️</div>
 
         <Form.Group controlId="formFile" className="mb-3">
-          <Form.Label className="btn btn-primary mb-2">Choose files to upload</Form.Label>
+          <Form.Label className="btn btn-primary mb-2">Choose file to upload</Form.Label>
           <Form.Control
             type="file"
             className="d-none"
             onChange={handleFileChange}
           />
           <div className="file-name text-muted small">
-            {fileName ? `Selected file: ${fileName}` : 'No file selected'}
+            {fileName ? <span>Selected file: <strong>{fileName}</strong></span> : 'No file selected'}
           </div>
         </Form.Group>
 

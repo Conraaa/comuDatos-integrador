@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import Offcanvas from 'react-bootstrap/Offcanvas';
-import Button from 'react-bootstrap/Button'; 
+import Button from 'react-bootstrap/Button';
 import ReduccionResult from './components/reduccion-result';
 import Digitalizacion from './components/digitalizacion';
 import DigitalizacionResult from './components/digitalizacion-result';
@@ -23,92 +23,104 @@ function App() {
   const handleCloseOffcanvas = () => setSidebarVisible(false);
   const handleShowOffcanvas = () => setSidebarVisible(true);
 
-  // Función para enviar imagen y bits al backend y recibir la imagen procesada
-  const enviarImagenYObtenerProcesadaReduccion = async (imageFile, bits) => {
+  // url backend
+  const BACKEND_BASE_URL = 'http://127.0.0.1:8000';
+
+
+  // digitalizacion
+  const enviarImagenYObtenerProcesadaDigitalizacion = async (imageFile, sampleRate, quantizationBits) => {
     try {
       const formData = new FormData();
-      formData.append('image', imageFile);
-      formData.append('bits', bits);
+      formData.append('file', imageFile);
+      formData.append('sample_rate', sampleRate);
+      formData.append('quantization_bits', quantizationBits);
 
-      // Cambia la URL por la de tu backend
-      const response = await fetch('http://localhost:5000/api/procesar-imagen', {
+      const response = await fetch(`${BACKEND_BASE_URL}/upload-and-process/`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Error en la respuesta del servidor');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error en la respuesta del servidor para digitalización');
       }
 
-      // Asumimos que el backend devuelve JSON con URL de imagen procesada
       const data = await response.json();
 
-      // data.processedImageUrl = URL de la imagen procesada
-      return data.processedImageUrl;
+      return {
+        original_image_url: `${BACKEND_BASE_URL}${data.original_image_url}`,
+        processed_image_url: `${BACKEND_BASE_URL}${data.processed_image_url}`
+      };
 
     } catch (error) {
-      alert('Error al procesar la imagen: ' + error.message);
+      alert('Error al procesar la imagen (Digitalización): ' + error.message);
       return null;
     }
   };
 
-    const enviarImagenYObtenerProcesadaDigitalizacion = async (imageFile) => {
+
+  // reduccion
+  const enviarImagenYObtenerProcesadaReduccion = async (imageFile, targetBits) => {
     try {
       const formData = new FormData();
-      formData.append('image', imageFile);
+      formData.append('file', imageFile);
+      formData.append('target_bits', targetBits);
 
-      // Cambia la URL por la de tu backend
-      const response = await fetch('http://localhost:5000/api/procesar-imagen', {
+      const response = await fetch(`${BACKEND_BASE_URL}/reduce-bits/`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Error en la respuesta del servidor');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error en la respuesta del servidor para reducción de bits');
       }
 
-      // Asumimos que el backend devuelve JSON con URL de imagen procesada
       const data = await response.json();
 
-      // data.processedImageUrl = URL de la imagen procesada
-      return data.processedImageUrl;
+      return {
+        original_image_url: `${BACKEND_BASE_URL}${data.original_image_url}`,
+        processed_image_url: `${BACKEND_BASE_URL}${data.processed_image_url}`
+      };
 
     } catch (error) {
-      alert('Error al procesar la imagen: ' + error.message);
+      alert('Error al procesar la imagen (Reducción de Bits): ' + error.message);
       return null;
     }
   };
 
 
-  const handleProcessReduccion = async (imageFile, bits) => {
-    // Mostrar la imagen original antes de procesar
+  // handle digitalizacion
+  const handleProcessDigitalizacion = async (imageFile, sampleRate, quantizationBits) => {
     setOriginalImage(URL.createObjectURL(imageFile));
-    setSelectedBits(bits);
-    setProcessedImage(null); // limpiar resultado previo
+    setProcessedImage(null);
 
-    // Enviar al backend y esperar la imagen procesada
-    const processedImageUrl = await enviarImagenYObtenerProcesadaReduccion(imageFile, bits);
+    const processedUrls = await enviarImagenYObtenerProcesadaDigitalizacion(imageFile, sampleRate, quantizationBits);
 
-    if (processedImageUrl) {
-      setProcessedImage(processedImageUrl);
+    if (processedUrls) {
+      setOriginalImage(processedUrls.original_image_url);
+      setProcessedImage(processedUrls.processed_image_url);
+      setComponenteActivo('digitizationResult');
+    }
+  };
+
+
+  // handle reduccion
+  const handleProcessReduccion = async (imageFile, targetBits) => {
+    setOriginalImage(URL.createObjectURL(imageFile));
+    setSelectedBits(targetBits);
+    setProcessedImage(null);
+
+    const processedUrls = await enviarImagenYObtenerProcesadaReduccion(imageFile, targetBits);
+
+    if (processedUrls) {
+      setOriginalImage(processedUrls.original_image_url);
+      setProcessedImage(processedUrls.processed_image_url);
       setComponenteActivo('bitDepthResult');
     }
   };
 
 
-
-
-  const handleProcessDigitalizacion = async (imageFile) => {
-    setOriginalImage(URL.createObjectURL(imageFile));
-    setProcessedImage(null);
-
-    const processedImageUrl = await enviarImagenYObtenerProcesadaDigitalizacion(imageFile);
-
-    if (processedImageUrl) {
-      setProcessedImage(processedImageUrl);
-      setComponenteActivo('digitizationResult');
-    }
-  };
 
 
   const renderComponente = () => {
@@ -127,16 +139,16 @@ function App() {
             selectedBits={selectedBits}
           />
         );
-        case 'digitizationResult':
+      case 'digitizationResult':
         return (
           <DigitalizacionResult
             originalImage={originalImage}
             processedImage={processedImage}
           />
         );
-        case 'history':
-          return (
-            <Historial historial={historial} />
+      case 'history':
+        return (
+          <Historial historial={historial} />
         );
       case 'howItWorks':
         return <Funcionamiento />;
@@ -145,12 +157,14 @@ function App() {
       default:
         return (
           <Digitalizacion 
-            onProcess={handleProcessDigitalizacion}/>
+            onProcess={handleProcessDigitalizacion}
+          />
         );
     }
   };
 
  
+
 
   return (
     <div className="app-container">
@@ -170,7 +184,7 @@ function App() {
             <div className="menuSuperior">
               {/*Boton de Analog*/}
               <Button
-                variant="light" 
+                variant="light"
                 onClick={() => { setComponenteActivo('analogToDigital'); handleCloseOffcanvas(); }}
                 className={componenteActivo === 'analogToDigital' ? 'active-link' : ''}
               >
@@ -188,14 +202,14 @@ function App() {
 
               {/*Boton de Historial*/}
               <Button
-                variant="light" 
+                variant="light"
                 onClick={() => { setComponenteActivo('history'); handleCloseOffcanvas(); }}
                 className={componenteActivo === 'history' ? 'active-link' : ''}
               >
                 History
               </Button>
             </div>
-            <hr /> 
+            <hr />
             <div className="menuInferior">
               {/*Boton de How it Works*/}
               <Button
