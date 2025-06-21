@@ -1,5 +1,33 @@
+.mb-4{
+    font-weight: bold;
+    color: #6f42c1;
+}
 
-.digitalizacion-card-container {
+.bit-button {
+  min-width: 90px;
+  font-weight: 500;
+  border-radius: 20px;
+  background-color: white !important;
+  color: #6f42c1;
+  border: 2px solid #6f42c1;
+  transition: all 0.2s ease-in-out;
+}
+
+.bit-button:hover,
+.bit-button:focus {
+  background-color: #d6b3f9 !important;
+  color: white;
+  border-color: #6f42c1;
+}
+
+.bit-button.active {
+  background-color: #d6b3f9 !important;
+  color: white;
+  border-color: #6f42c1 !important;
+}
+
+
+.reduccion-card-container {
   max-width: 700px;
   margin: 2rem auto;
     padding: 2rem;
@@ -46,14 +74,3 @@
   background-color: #6f42c1;
   border-color: #6f42c1;
 }
-
-/*
-.upload-container {
-  max-width: 600px;
-  margin: auto;
-  text-align: center;
-}
-.results img {
-  max-width: 100%;
-  margin: 10px 0;
-}*/

@@ -1,14 +1,27 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from PIL import Image
-import io
 import os
 import uuid
+import logging
 
-from utils.image_processing import process_image_for_digitalization
-from utils.bit_depth_reducer import apply_bit_depth_reduction
+# bd
+from backend.db.database import create_db_tables, get_db, OriginalImage, DigitalizedImage, BitDepthReducedImage, Base
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
+# digitalizacion
+from backend.utils.image_processing import process_image_for_digitalization
+
+# reduccion de bits
+from backend.utils.bit_depth_reducer import apply_bit_depth_reduction
+
+# cors
 from fastapi.middleware.cors import CORSMiddleware
+
+# logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -32,6 +45,17 @@ BIT_DEPTH_REDUCED_DIRECTORY = "bit_depth_reduced_images"
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 os.makedirs(PROCESSED_DIRECTORY, exist_ok=True)
 os.makedirs(BIT_DEPTH_REDUCED_DIRECTORY, exist_ok=True)
+
+@app.on_event("startup")
+async def startup():
+    logger.info("Iniciando aplicación...")
+    await create_db_tables()
+    logger.info("Motor de base de datos configurado y tablas verificadas.")
+    
+@app.on_event("shutdown")
+async def shutdown():
+    logger.info("Cerrando aplicación...")
+    logger.info("Aplicación cerrada.")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -67,7 +91,7 @@ async def read_root():
             <div class="container">
                 <div class="card">
                     <h2>1. Digitalización Completa</h2>
-                    <p>Usa la función de tu compañero para aplicar muestreo y su lógica de cuantización.</p>
+                    <p>Usa la función aplicar muestreo y su lógica de cuantización.</p>
                     <form id="digitalizationForm" action="/upload-and-process/" enctype="multipart/form-data" method="post">
                         <label for="file_digitalize">Sube tu imagen de "alta resolución":</label>
                         <input name="file" type="file" accept="image/*" id="file_digitalize">
@@ -133,7 +157,6 @@ async def read_root():
                         }
 
                         const result = await response.json();
-                        
                         originalDisplay.src = result.original_image_url;
                         processedDisplay.src = result.processed_image_url;
                         originalDisplay.alt = `Original: ${result.original_filename}`;
@@ -159,19 +182,23 @@ async def read_root():
             </script>
         </body>
     </html>
-    """
+        """
     pass
 
 @app.post("/upload-and-process/")
 async def upload_and_process_image(
     file: UploadFile = File(...),
     sample_rate: int = Form(1),
-    quantization_bits: int = Form(8)
-):
+    quantization_bits: int = Form(8),
+    db: AsyncSession = Depends(get_db)
+):  
+    logger.info(f"DEBUG: sample_rate recibido: {sample_rate}")
+    logger.info(f"DEBUG: quantization_bits recibido: {quantization_bits}")
+    
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="El archivo no es una imagen válida.")
 
-    file_extension = file.filename.split(".")[-1]
+    file_extension = file.filename.split(".")[-1].lower()
     original_filename = f"{uuid.uuid4()}.{file_extension}"
     processed_filename = f"processed_{uuid.uuid4()}.{file_extension}"
 
@@ -182,6 +209,23 @@ async def upload_and_process_image(
             buffer.write(await file.read())
 
         original_image = Image.open(original_file_path)
+        
+        width, height = original_image.size
+        bits_per_channel = 8
+
+        db_original_image = OriginalImage(
+            filename=original_filename,
+            width=width,
+            height=height,
+            bits_per_channel=bits_per_channel
+        )
+        db.add(db_original_image)
+        await db.commit()
+        await db.refresh(db_original_image)
+        original_image_id = db_original_image.id
+        
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
 
         processed_image = process_image_for_digitalization(
             original_image,
@@ -193,6 +237,21 @@ async def upload_and_process_image(
             processed_image = processed_image.convert('RGB')
 
         processed_image.save(os.path.join(PROCESSED_DIRECTORY, processed_filename))
+        
+        db_digitalized_image = DigitalizedImage(
+            original_image_id=original_image_id,
+            filename=processed_filename,
+            sample_rate_used=sample_rate,
+            quantization_bits_used=quantization_bits,
+            processed_width=processed_image.size[0],
+            processed_height=processed_image.size[1],
+            processed_bits_per_channel=quantization_bits
+        )
+        db.add(db_digitalized_image)
+        await db.commit()
+        await db.refresh(db_digitalized_image)
+
+        logger.info(f"Imagen digitalizada guardada en la DB con ID: {db_digitalized_image.id}")
 
         return {
             "message": "Imagen digitalizada exitosamente",
@@ -201,12 +260,94 @@ async def upload_and_process_image(
             "original_filename": original_filename,
             "processed_filename": processed_filename
         }
+        
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        await db.rollback()
+        logger.error(f"Error al procesar la imagen: {str(e)}", exc_info=True)
+
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
         raise HTTPException(status_code=500, detail=f"Error al procesar la imagen: {str(e)}")
+    
+@app.post("/reduce-bits/")
+async def reduce_bits_image(
+    file: UploadFile = File(...),
+    target_bits: int = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="El archivo no es una imagen válida.")
+
+    file_extension = file.filename.split(".")[-1].lower()
+    original_filename = f"{uuid.uuid4()}.{file_extension}"
+    reduced_filename = f"reduced_{uuid.uuid4()}.{file_extension}"
+
+    original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename)
+    reduced_file_path = os.path.join(BIT_DEPTH_REDUCED_DIRECTORY, reduced_filename)
+
+    try:
+        with open(original_file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        original_image = Image.open(original_file_path)
+
+        width, height = original_image.size
+        bits_per_channel = 8
+
+        db_original_image = OriginalImage(
+            filename=original_filename,
+            width=width,
+            height=height,
+            bits_per_channel=bits_per_channel
+        )
+        db.add(db_original_image)
+        await db.commit()
+        await db.refresh(db_original_image)
+        original_image_id = db_original_image.id
+
+        reduced_image = apply_bit_depth_reduction(
+            original_image,
+            target_bits=target_bits
+        )
+
+        if reduced_image.mode == 'P' and file_extension in ['jpg', 'jpeg']:
+            reduced_image = reduced_image.convert('RGB')
+
+        reduced_image.save(reduced_file_path)
+
+        db_bit_reduced_image = BitDepthReducedImage(
+            original_image_id=original_image_id,
+            filename=reduced_filename,
+            target_bits_per_channel=target_bits
+        )
+        db.add(db_bit_reduced_image)
+        await db.commit()
+        await db.refresh(db_bit_reduced_image)
+
+        logger.info(f"Imagen con profundidad de bits reducida guardada en la DB con ID: {db_bit_reduced_image.id}")
+
+        return {
+            "message": "Profundidad de bits reducida exitosamente",
+            "original_image_url": f"/images/{original_filename}",
+            "processed_image_url": f"/images/{reduced_filename}",
+            "original_filename": original_filename,
+            "processed_filename": reduced_filename
+        }
+    except ValueError as ve:
+        await db.rollback()
+        logger.error(f"Error en la reducción de bits: {str(ve)}", exc_info=True)
+        
+        if os.path.exists(original_file_path):
+            os.remove(original_file_path)
+        raise HTTPException(status_code=400, detail=f"Error en la reducción de bits: {str(ve)}")
+    
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error inesperado al reducir la profundidad de bits: {str(e)}", exc_info=True)
+        
+        if os.path.exists(original_file_path):
+            os.remove(original_file_path)
+        raise HTTPException(status_code=500, detail=f"Error inesperado al reducir la profundidad de bits: {str(e)}")
 
 
 @app.post("/reduce-bits/")
@@ -274,7 +415,7 @@ async def get_image(filename: str):
     else:
         raise HTTPException(status_code=404, detail="Imagen no encontrada")
 
-    mime_type = "application/octet-stream"
+    mime_type = "image/jpeg"
     if filename.lower().endswith(('.jpg', '.jpeg')):
         mime_type = "image/jpeg"
     elif filename.lower().endswith('.png'):
@@ -285,3 +426,9 @@ async def get_image(filename: str):
         mime_type = "image/bmp"
 
     return StreamingResponse(open(file_path, "rb"), media_type=mime_type)
+
+@app.get("/records/")
+async def get_image_records(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(OriginalImage))
+    records = result.scalars().all()
+    return records

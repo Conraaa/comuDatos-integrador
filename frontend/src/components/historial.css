@@ -1,0 +1,28 @@
+h2{
+    text-align: center;
+}
+
+.historial-container {
+  padding: 20px;
+}
+
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.historial-card {
+  background: #e8eaee;
+  padding: 15px;
+  border-radius: 8px;
+  width: 30%;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.historial-card img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 5px;
+}
