@@ -26,3 +26,20 @@ h2{
   height: auto;
   margin-bottom: 5px;
 }
+
+.display-arrow {
+  font-size: 50px;
+  color: #6f42c1;
+}
+
+.mt-2 {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+  color: white;
+}
+
+.mt-2:hover {
+  background-color: #5a36a0;
+  border-color: #5a36a0;
+  color: white;
+}
