@@ -1,0 +1,9 @@
+.upload-container {
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+}
+.results img {
+  max-width: 100%;
+  margin: 10px 0;
+}
