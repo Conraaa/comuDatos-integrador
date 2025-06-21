@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Depends
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from PIL import Image
 import os
 import uuid
@@ -9,6 +9,7 @@ import logging
 from backend.db.database import create_db_tables, get_db, OriginalImage, DigitalizedImage, BitDepthReducedImage, Base
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 # digitalizacion
 from backend.utils.image_processing import process_image_for_digitalization
@@ -38,6 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# path's directorios
 UPLOAD_DIRECTORY = "uploaded_images"
 PROCESSED_DIRECTORY = "processed_images"
 BIT_DEPTH_REDUCED_DIRECTORY = "bit_depth_reduced_images"
@@ -203,6 +205,7 @@ async def upload_and_process_image(
     processed_filename = f"processed_{uuid.uuid4()}.{file_extension}"
 
     original_file_path = os.path.join(UPLOAD_DIRECTORY, original_filename)
+    processed_file_path = os.path.join(PROCESSED_DIRECTORY, processed_filename)
 
     try:
         with open(original_file_path, "wb") as buffer:
@@ -233,10 +236,12 @@ async def upload_and_process_image(
             quantization_bits=quantization_bits
         )
 
-        if processed_image.mode == 'P' and file_extension.lower() in ['jpg', 'jpeg']:
+        if processed_image.mode == 'P' and file_extension in ['jpg', 'jpeg']:
             processed_image = processed_image.convert('RGB')
 
         processed_image.save(os.path.join(PROCESSED_DIRECTORY, processed_filename))
+        
+        processed_bits_per_channel = quantization_bits if 1 <= quantization_bits <= 8 else (24 if quantization_bits == 24 else None)
         
         db_digitalized_image = DigitalizedImage(
             original_image_id=original_image_id,
@@ -245,7 +250,7 @@ async def upload_and_process_image(
             quantization_bits_used=quantization_bits,
             processed_width=processed_image.size[0],
             processed_height=processed_image.size[1],
-            processed_bits_per_channel=quantization_bits
+            processed_bits_per_channel=processed_bits_per_channel
         )
         db.add(db_digitalized_image)
         await db.commit()
@@ -267,6 +272,10 @@ async def upload_and_process_image(
 
         if os.path.exists(original_file_path):
             os.remove(original_file_path)
+            
+        if os.path.exists(processed_file_path):
+            os.remove(processed_file_path)
+            
         raise HTTPException(status_code=500, detail=f"Error al procesar la imagen: {str(e)}")
     
 @app.post("/reduce-bits/")
@@ -424,11 +433,62 @@ async def get_image(filename: str):
         mime_type = "image/gif"
     elif filename.lower().endswith('.bmp'):
         mime_type = "image/bmp"
+    else:
+        mime_type = "application/octet-stream"
 
     return StreamingResponse(open(file_path, "rb"), media_type=mime_type)
 
-@app.get("/records/")
-async def get_image_records(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(OriginalImage))
-    records = result.scalars().all()
-    return records
+@app.get("/history/")
+async def get_history_records(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(OriginalImage)
+        .options(joinedload(OriginalImage.digitalized_versions))
+        .options(joinedload(OriginalImage.bit_reduced_versions))
+        .order_by(OriginalImage.created_at.desc())
+    )
+    original_images = result.scalars().unique().all()
+
+    history_records = []
+    for orig_img in original_images:
+        orig_img_data = {
+            "id": orig_img.id,
+            "filename": orig_img.filename,
+            "width": orig_img.width,
+            "height": orig_img.height,
+            "bits_per_channel": orig_img.bits_per_channel,
+            "created_at": orig_img.created_at.isoformat(),
+            "original_image_url": f"http://127.00.1:8000/images/{orig_img.filename}"
+        }
+
+        # digitalizacion
+        for dig_img in orig_img.digitalized_versions:
+            history_records.append({
+                "type": "digitalized",
+                "id": dig_img.id,
+                "original_image": orig_img_data,
+                "processed_image_url": f"http://127.0.0.1:8000/images/{dig_img.filename}",
+                "processed_filename": dig_img.filename,
+                "sample_rate_used": dig_img.sample_rate_used,
+                "quantization_bits_used": dig_img.quantization_bits_used,
+                "processed_width": dig_img.processed_width,
+                "processed_height": dig_img.processed_height,
+                "processed_bits_per_channel": dig_img.processed_bits_per_channel,
+                "created_at": dig_img.created_at.isoformat()
+            })
+        
+        # reduccion
+        for bit_img in orig_img.bit_reduced_versions:
+            history_records.append({
+                "type": "bit_reduced",
+                "id": bit_img.id,
+                "original_image": orig_img_data,
+                "processed_image_url": f"http://127.0.0.1:8000/images/{bit_img.filename}",
+                "processed_filename": bit_img.filename,
+                "target_bits_per_channel": bit_img.target_bits_per_channel,
+                "created_at": bit_img.created_at.isoformat()
+            })
+
+    # orden
+    history_records.sort(key=lambda x: x["created_at"], reverse=True)
+
+    return JSONResponse(content=history_records)

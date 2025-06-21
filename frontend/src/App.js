@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import Button from 'react-bootstrap/Button';
@@ -18,7 +18,9 @@ function App() {
   const [originalImage, setOriginalImage] = useState(null);
   const [selectedBits, setSelectedBits] = useState(null);
   const [processedImage, setProcessedImage] = useState(null);
-  const [historial, setHistorial] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
 
   const handleCloseOffcanvas = () => setSidebarVisible(false);
   const handleShowOffcanvas = () => setSidebarVisible(true);
@@ -101,6 +103,7 @@ function App() {
       setOriginalImage(processedUrls.original_image_url);
       setProcessedImage(processedUrls.processed_image_url);
       setComponenteActivo('digitizationResult');
+      fetchHistory();
     }
   };
 
@@ -117,8 +120,35 @@ function App() {
       setOriginalImage(processedUrls.original_image_url);
       setProcessedImage(processedUrls.processed_image_url);
       setComponenteActivo('bitDepthResult');
+      fetchHistory();
     }
   };
+
+
+  // historial
+  const fetchHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError(null);
+    try {
+      const response = await fetch(`${BACKEND_BASE_URL}/history/`);
+      if (!response.ok) {
+        throw new Error('Error al cargar el historial.');
+      }
+      const data = await response.json();
+      setHistoryData(data);
+    } catch (error) {
+      setHistoryError(error.message);
+      console.error('Error cargando historial:', error);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (componenteActivo === 'history') {
+      fetchHistory();
+    }
+  }, [componenteActivo]);
 
 
 
@@ -148,7 +178,11 @@ function App() {
         );
       case 'history':
         return (
-          <Historial historial={historial} />
+          <Historial
+            historyData={historyData}
+            loading={historyLoading}
+            error={historyError}
+          />
         );
       case 'howItWorks':
         return <Funcionamiento />;
