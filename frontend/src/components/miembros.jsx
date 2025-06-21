@@ -3,8 +3,8 @@ import './miembros.css';
 
 function miembros() {
   return (
-    <div className="card-grid-container">
-            <div className="card">
+    <div className="card-grid-container-m">
+            <div className="card-m">
                 <h2>Miembros</h2>
                 <p>
                 Cemino, Conrado <br />
