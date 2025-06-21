@@ -11,6 +11,7 @@ import Miembros from './components/miembros';
 import Historial from './components/historial';
 import miImagen from './circle logo.png';
 import logoMenu from './png logo.png';
+import { message } from 'antd';
 
 function App() {
   const [componenteActivo, setComponenteActivo] = useState('analogToDigital');
@@ -55,7 +56,7 @@ function App() {
       };
 
     } catch (error) {
-      alert('Error al procesar la imagen (Digitalización): ' + error.message);
+      message.error('Error al procesar la imagen: ' + error.message);
       return null;
     }
   };

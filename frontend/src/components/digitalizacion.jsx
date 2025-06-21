@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Container, Button, Form } from 'react-bootstrap';
 import './digitalizacion.css';
+import { message } from 'antd';
+
 
 function Digitalizacion({ onProcess }) {
   const [fileName, setFileName] = useState('');
@@ -22,7 +24,7 @@ function Digitalizacion({ onProcess }) {
 
   const handleProcessDigitalizacion = () => {
     if (!file) {
-      alert("Select file first.");
+      message.error("Select file first.");
       return;
     }
     onProcess(file, FIXED_SAMPLE_RATE, FIXED_QUANTIZATION_BITS);

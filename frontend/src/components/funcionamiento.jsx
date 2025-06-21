@@ -15,7 +15,7 @@ function funcionamiento() {
       <h2>¿Cómo funciona?</h2>
       <div className="card-grid">
         {cards.map((card, index) => (
-          <div className="card" key={index}>
+          <div className="card-f" key={index}>
             <div className="icono-estilizado">{card.numero}</div>
             <p>{card.texto}</p>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Button, Form } from 'react-bootstrap';
 import './reduccion.css';
+import { message } from 'antd';
 
 function Reduccion({ onProcess }) {
   const [selectedBitDepth, setSelectedBitDepth] = useState(null);
@@ -20,7 +21,7 @@ function Reduccion({ onProcess }) {
 
   const handleProcessReduccion = () => {
     if (!file || !selectedBitDepth) {
-      alert("Select file and bit depth first.");
+      message.error("Select file and bit depth first.");
       return;
     }
     onProcess(file, parseInt(selectedBitDepth, 10));
