@@ -92,10 +92,15 @@ function App() {
     if (processedImageUrl) {
       setProcessedImage(processedImageUrl);
       setComponenteActivo('bitDepthResult');
+    
+      setHistorial(prev => [...prev, {
+        tipo: 'Reducción',
+        original: URL.createObjectURL(imageFile),
+        procesada: processedImageUrl,
+        bits: bits
+      }]);
     }
   };
-
-
 
 
   const handleProcessDigitalizacion = async (imageFile) => {
@@ -107,6 +112,12 @@ function App() {
     if (processedImageUrl) {
       setProcessedImage(processedImageUrl);
       setComponenteActivo('digitizationResult');
+
+      setHistorial(prev => [...prev, {
+        tipo: 'Digitalización',
+        original: URL.createObjectURL(imageFile),
+        procesada: processedImageUrl
+      }]);
     }
   };
 
